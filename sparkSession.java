@@ -30,9 +30,11 @@ public class sparkSession{
 	private String Separator;
 	private String Filter;
 	private String TableRef;
+	private String sparkMaster;
 	
 	private sparkSession(Builder builder)
 	{
+		setSparkMaster(builder.sparkMaster);
 		setHost(builder.Host);
 		setPort(builder.Port);
 		setHDFSPath(builder.HDFSPath);
@@ -43,6 +45,12 @@ public class sparkSession{
 	
 	public static Builder newSparkSession(){
 		return new Builder();
+	}
+	public void setSparkMaster(String ref) {
+		this.sparkMaster = ref;
+	}
+	public String getSparkMaster() {
+		return this.sparkMaster;
 	}
 	public void setTableRef(String ref) {
 		this.TableRef = ref;
@@ -94,7 +102,13 @@ public class sparkSession{
 		private String Separator;
 		private String Filter;
 		private String TableRef;
+		private String sparkMaster;
 		
+		public Builder sparkMaster(String sparkMaster)
+		{
+			this.sparkMaster=  sparkMaster;
+			return this;
+		}
 		public Builder Host(String host)
 		{
 			this.Host =  host;
@@ -156,36 +170,53 @@ public class sparkSession{
 		    	schema.add(ref,"string");
 		    	
 		    }
-
 		    
 			 Dataset<Row> df = spark.read()
 			    		.schema(schema)
 			    		.option("mode","dropmalformed")
 			    		.option("sep",Separator).format("org.apache.spark.sql.execution.datasources.csv.CSVFileFormat")
 			    		.load("hdfs://"+Host+":"+Port+HDFSPath).filter(Filter);
-		       
+		   
 			    df.createOrReplaceTempView(TableRef);
-
-			    df.show();
-			    
+			    df.show();    
 		}
 	
 	}
 	
-	
 	public static void main(String[] args) throws Exception {
-		List<String> header = Arrays.asList("stock","date","OpenPrice","lowPrice","highPrice","closingPrice","volume");
-		Builder sparksession = sparkSession.newSparkSession()
-				.Host("127.0.0.1")
-				.Port(9000)
-				.HDFSPath("/user/xavier/US_Stocks")
-				.Header(header)
-				.Separator(",")
-				.Filter("stock like '%A'")
-				.TableRef("Stock");
 		
+		CliArgs cliArgs = new CliArgs(args);
+
+		String SparkMaster = cliArgs.switchValue("-SparkMaster");
+	    String Host = cliArgs.switchValue("-HDFShost");
+	    String strPort = cliArgs.switchValue("-port");
+	    String HDFSPath = cliArgs.switchValue("-hdfsPath");
+	    String Header = cliArgs.switchValue("-header");
+	    String Separator = cliArgs.switchValue("-separator");
+	    String Filter = cliArgs.switchValue("-filter");
+	    String TableName = cliArgs.switchValue("-tableName");
+	    int port = Integer.parseInt(strPort);
+	    
+
+		//List<String> header = Arrays.asList("stock","date","OpenPrice","lowPrice","highPrice","closingPrice","volume");
+	    List<String> header = new ArrayList();
+	    String[] headerField = Header.split(",");
+	    for (int i=0;i<headerField.length;i++)
+	    {
+	    	header.add(headerField[i]);
+	    }
+	    Builder sparksession = sparkSession.newSparkSession()
+				.Host(Host)
+				.Port(port)
+				.HDFSPath(HDFSPath)
+				.Header(header)
+				.Separator(Separator)
+				.Filter(Filter)
+				.TableRef(TableName);
+	  
 		sparksession.start();
 	   
 	    
     }
 }
+
