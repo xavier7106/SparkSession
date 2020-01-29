@@ -1,5 +1,7 @@
 # SparkSession
-SparkSessionExtractFromHDFS
+SparkSessionExtractFromHDFS: 
+
+extract HDFS file to create SPARK dataset and run SQL query
 
 arguments are:
 -SparkMaster local[*] ==> the spark master reference 
