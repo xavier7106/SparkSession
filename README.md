@@ -17,3 +17,5 @@ arguments are:
 -tableName stock  ==> Spark dataset reference
 
 -header "stock,date,OpenPrice,LowPrice,highPrice,closingPrice,volume" ==> the Spark dataset columns
+
+-sql "SELECT stock, SUM(volume) FROM stocks GROUP BY stock"
