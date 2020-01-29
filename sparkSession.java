@@ -31,6 +31,7 @@ public class sparkSession{
 	private String Filter;
 	private String TableRef;
 	private String sparkMaster;
+	private String SQL;
 	
 	private sparkSession(Builder builder)
 	{
@@ -41,6 +42,7 @@ public class sparkSession{
 		setHeader(builder.Header);
 		setSeparator(builder.Separator);
 		setFilter(builder.Filter);
+		setSQL(builder.SQL);
 	}
 	
 	public static Builder newSparkSession(){
@@ -51,6 +53,12 @@ public class sparkSession{
 	}
 	public String getSparkMaster() {
 		return this.sparkMaster;
+	}
+	public void setSQL(String ref) {
+		this.SQL= ref;
+	}
+	public String getSQL() {
+		return this.SQL;
 	}
 	public void setTableRef(String ref) {
 		this.TableRef = ref;
@@ -103,10 +111,16 @@ public class sparkSession{
 		private String Filter;
 		private String TableRef;
 		private String sparkMaster;
+		private String SQL;
 		
 		public Builder sparkMaster(String sparkMaster)
 		{
 			this.sparkMaster=  sparkMaster;
+			return this;
+		}
+		public Builder SQL(String SQL)
+		{
+			this.SQL=  SQL;
 			return this;
 		}
 		public Builder Host(String host)
@@ -178,7 +192,13 @@ public class sparkSession{
 			    		.load("hdfs://"+Host+":"+Port+HDFSPath).filter(Filter);
 		   
 			    df.createOrReplaceTempView(TableRef);
-			    df.show();    
+			    df.show();  
+
+			    System.out.println(SQL);
+				if (SQL!= null) {
+					 Dataset<Row> sqlResult = spark.sql(SQL);
+					 sqlResult.show();
+				}
 		}
 	
 	}
@@ -196,7 +216,7 @@ public class sparkSession{
 	    String Filter = cliArgs.switchValue("-filter");
 	    String TableName = cliArgs.switchValue("-tableName");
 	    int port = Integer.parseInt(strPort);
-	    
+	    String SQL = cliArgs.switchValue("-sql");
 
 		//List<String> header = Arrays.asList("stock","date","OpenPrice","lowPrice","highPrice","closingPrice","volume");
 	    List<String> header = new ArrayList();
@@ -212,11 +232,13 @@ public class sparkSession{
 				.Header(header)
 				.Separator(Separator)
 				.Filter(Filter)
-				.TableRef(TableName);
+				.TableRef(TableName)
+				.SQL(SQL);
+	    
 	  
 		sparksession.start();
+		
 	   
-	    
     }
 }
 
